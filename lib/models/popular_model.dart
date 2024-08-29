@@ -1,10 +1,13 @@
-class popularModel{
+import 'package:pls_work/models/cart_item_model.dart';
+
+class popularModel implements CartItem{
   String name;
   String iconPath;
   String level;
   String duration;
   String calories;
   bool boxIsSelected;
+  double price;
 
   popularModel({
     required this.name,
@@ -13,6 +16,7 @@ class popularModel{
     required this.duration,
     required this.calories,
     required this.boxIsSelected,
+    this.price = 0,
   });
 
   static List<popularModel> getPopular(){
@@ -25,7 +29,8 @@ class popularModel{
           level: 'medium',
           duration: '20 mins',
           boxIsSelected: true,
-          calories: '150kCal'
+          calories: '150kCal',
+          price: 19.99,
       )
     );
 
@@ -37,6 +42,7 @@ class popularModel{
           duration: '20mins',
           calories: '120kCal',
           boxIsSelected: false,
+          price: 9.99,
         )
     );
 

@@ -2,13 +2,16 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:google_nav_bar/google_nav_bar.dart';
+import 'package:pls_work/food/pancakes.dart';
+import 'package:pls_work/food/salads.dart';
 import 'package:pls_work/models/category_models.dart';
 import 'package:pls_work/models/diet_models.dart';
 import 'package:pls_work/models/popular_model.dart';
+import 'package:pls_work/models/shopping_cart.dart';
 import 'package:pls_work/pages/category.dart';
 import 'package:pls_work/pages/favorite.dart';
-import 'package:pls_work/pages/profile.dart';
-import 'package:pls_work/pages/shoping_cart.dart';
+import 'package:pls_work/pages/shoping_cart_page.dart';
+import 'package:provider/provider.dart';
 
 class homePage extends StatefulWidget {
   homePage({super.key});
@@ -22,7 +25,6 @@ class _homePageState extends State<homePage> {
   List<DietModel> diets = [];
   List<popularModel> popularDiets = [];
 
-
   void _getInitialInfo() {
     categories = categoryModel.getCategory();
     diets = DietModel.getDiet();
@@ -34,9 +36,34 @@ class _homePageState extends State<homePage> {
   Widget build(BuildContext context) {
     _getInitialInfo();
     return Scaffold(
-      appBar: appBar(),
-      backgroundColor: Colors.white,
-      body: _widgetOptions.elementAt(_selectedIndex),
+        appBar: appBar(),
+        drawer: Drawer(
+          child: Padding(
+            padding: const EdgeInsets.only(top: 8.0),
+            child: ListView(
+              children: [
+                ListTile(
+                  title: Text('About Us'),
+                  onTap: (){},
+                ),
+                ListTile(
+                  title: Text('Contact Us'),
+                  onTap: (){},
+                ),
+                ListTile(
+                  title: Text('Past orders'),
+                  onTap: (){},
+                ),
+                ListTile(
+                  title: Text('Settings'),
+                  onTap: (){},
+                )
+              ],
+            ),
+          ),
+        ),
+        backgroundColor: Colors.white,
+        body: _widgetOptions.elementAt(_selectedIndex),
         bottomNavigationBar: Container(
           color: Colors.white,
           child: Padding(
@@ -47,7 +74,7 @@ class _homePageState extends State<homePage> {
               color: Colors.black,
               activeColor: Colors.purple,
               tabBackgroundColor: Color(0xffC58BF2).withOpacity(0.3),
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
               onTabChange: (index) {
                 setState(() {
                   _selectedIndex = index;
@@ -55,51 +82,46 @@ class _homePageState extends State<homePage> {
               },
               tabs: const [
                 GButton(
-                    icon: Icons.home,
-                    text: 'Home',
+                  icon: Icons.home,
+                  text: 'Home',
                 ),
                 GButton(
-                    icon: Icons.category,
-                    text: 'Categories',
+                  icon: Icons.category,
+                  text: 'Categories',
                 ),
                 GButton(
-                    icon: Icons.favorite_border,
-                    text: 'Wishlist',
+                  icon: Icons.favorite_border,
+                  text: 'Wishlist',
                 ),
-                GButton(
-                    icon: Icons.settings,
-                    text: 'Settings',
-                )
               ],
             ),
           ),
-        )
-      );
+        ));
   }
 
-  List<Widget> get _widgetOptions => [
-    _homePageBody(),
-    CategoryPage(),
-    FavoritePage(),
-    ProfilePage(),
-    ShopingPage()
-  ];
+  List<Widget> get _widgetOptions =>
+      [_homePageBody(), CategoryPage(), FavoritePage(), ShoppingCartPage()];
 
   Widget _homePageBody() {
     return ListView(
       children: [
         searchField(),
-        const SizedBox(height: 40,),
+        const SizedBox(
+          height: 40,
+        ),
         categorySection(),
-        const SizedBox(height: 40,),
+        const SizedBox(
+          height: 40,
+        ),
         dietSection(),
-        const SizedBox(height: 40,),
+        const SizedBox(
+          height: 40,
+        ),
         popularSection(),
         const SizedBox(height: 40),
       ],
     );
   }
-
 
   Column popularSection() {
     return Column(
@@ -136,10 +158,7 @@ class _homePageState extends State<homePage> {
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
                   SvgPicture.asset(popularDiets[index].iconPath,
-                      height: 65,
-                      width: 65
-                  ),
-
+                      height: 65, width: 65),
                   Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -152,9 +171,12 @@ class _homePageState extends State<homePage> {
                           color: Colors.black,
                         ),
                       ),
-
                       Text(
-                        diets[index].level + ' | ' + diets[index].calories + ' | ' +  diets[index].duration,
+                        diets[index].level +
+                            ' | ' +
+                            diets[index].calories +
+                            ' | ' +
+                            diets[index].duration,
                         style: const TextStyle(
                           color: Color(0xff7B6F72),
                           fontSize: 13,
@@ -164,10 +186,20 @@ class _homePageState extends State<homePage> {
                     ],
                   ),
                   GestureDetector(
-                    onTap: (){
-
+                    onTap: () {
+                      final selectedPopular = popularDiets[index];
+                      context
+                          .read<ShoppingCartModel>()
+                          .addItem(selectedPopular);
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                            content:
+                                Text('${selectedPopular.name} added to cart'),
+                            duration: Duration(seconds: 1)),
+                      );
                     },
-                    child: SvgPicture.asset('assets/icons/button.svg',
+                    child: SvgPicture.asset(
+                      'assets/icons/button.svg',
                       width: 30,
                       height: 30,
                     ),
@@ -176,7 +208,9 @@ class _homePageState extends State<homePage> {
               ),
             );
           },
-          separatorBuilder: (context, index) => const SizedBox(width: 25,),
+          separatorBuilder: (context, index) => const SizedBox(
+            width: 25,
+          ),
           itemCount: popularDiets.length,
           shrinkWrap: true,
           padding: const EdgeInsets.only(
@@ -203,11 +237,13 @@ class _homePageState extends State<homePage> {
             ),
           ),
         ),
-        const SizedBox(height: 15,),
+        const SizedBox(
+          height: 15,
+        ),
         Container(
           height: 240,
           child: ListView.separated(
-            itemBuilder: (context, index){
+            itemBuilder: (context, index) {
               return Container(
                 width: 210,
                 decoration: BoxDecoration(
@@ -228,9 +264,12 @@ class _homePageState extends State<homePage> {
                             fontSize: 16,
                           ),
                         ),
-
                         Text(
-                          diets[index].level + ' | ' + diets[index].calories + ' | ' +  diets[index].duration,
+                          diets[index].level +
+                              ' | ' +
+                              diets[index].calories +
+                              ' | ' +
+                              diets[index].duration,
                           style: const TextStyle(
                             color: Color(0xff7B6F72),
                             fontSize: 13,
@@ -239,45 +278,60 @@ class _homePageState extends State<homePage> {
                         ),
                       ],
                     ),
-
-
                     Container(
                       height: 45,
                       width: 130,
                       decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                            colors: [
-                              diets[index].viewIsSelected ? const Color(0xff9DCEFF) : Colors.transparent,
-                              diets[index].viewIsSelected ? const Color(0xff92A3FD) : Colors.transparent,
-                            ]
-                        ),
+                        gradient: LinearGradient(colors: [
+                          diets[index].viewIsSelected
+                              ? const Color(0xff9DCEFF)
+                              : Color(0xff9DCEFF),
+                          diets[index].viewIsSelected
+                              ? const Color(0xff92A3FD)
+                              : Color(0xff92A3FD),
+                        ]),
                         borderRadius: BorderRadius.circular(50),
-
                       ),
                       child: Center(
-                        child: Text(
-                          'View',
-                          style: TextStyle(
-                            color: diets[index].viewIsSelected ? Colors.white : const Color(0xffC58BF2),
-                            fontWeight: FontWeight.w600,
-                            fontSize: 14,
+                        child: GestureDetector(
+                          child: Text(
+                            'Buy',
+                            style: TextStyle(
+                              color: diets[index].viewIsSelected
+                                  ? Colors.white
+                                  : Colors.white,
+                              fontWeight: FontWeight.w600,
+                              fontSize: 14,
+                            ),
                           ),
+                          onTap: () {
+                            final selectedDiet = diets[index];
+                            context
+                                .read<ShoppingCartModel>()
+                                .addItem(selectedDiet);
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                  content: Text(
+                                      '${selectedDiet.name} added to cart'),
+                                  duration: Duration(seconds: 1)),
+                            );
+                          },
                         ),
-
                       ),
                     )
                   ],
                 ),
               );
             },
-            separatorBuilder:  (context, index) => const SizedBox(width: 25,),
+            separatorBuilder: (context, index) => const SizedBox(
+              width: 25,
+            ),
             itemCount: diets.length,
             scrollDirection: Axis.horizontal,
             padding: const EdgeInsets.only(
               left: 20,
               right: 20,
             ),
-
           ),
         )
       ],
@@ -301,22 +355,30 @@ class _homePageState extends State<homePage> {
         ),
         const SizedBox(height: 15),
         Container(
-            height: 120,
-            child: ListView.separated(
-              itemCount: categories.length > 5 ? 5: categories.length,
-              scrollDirection: Axis.horizontal,
-              separatorBuilder: (context, index) => const SizedBox(width: 25,),
-              padding: const EdgeInsets.only(
-                  left: 20,
-                  right: 20
-              ),
-              itemBuilder: (context, index){
-                return Container(
+          height: 120,
+          child: ListView.separated(
+            itemCount: categories.length > 5 ? 5 : categories.length,
+            scrollDirection: Axis.horizontal,
+            separatorBuilder: (context, index) => const SizedBox(
+              width: 25,
+            ),
+            padding: const EdgeInsets.only(left: 20, right: 20),
+            itemBuilder: (context, index) {
+              return InkWell(
+                onTap: () {
+                  if (categories[index].name == 'Salads') {
+                    categories[index].navigateToPage(context, SaladOptions());
+                  } else if (categories[index].name == 'More...') {
+                    categories[index].navigateToPage(context, CategoryPage());
+                  } else {
+                    categories[index].navigateToPage(context, PancakeOptions());
+                  }
+                },
+                child: Container(
                   width: 100,
                   decoration: BoxDecoration(
                       color: categories[index].boxColor.withOpacity(0.3),
-                      borderRadius: BorderRadius.circular(16)
-                  ),
+                      borderRadius: BorderRadius.circular(16)),
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
@@ -342,9 +404,10 @@ class _homePageState extends State<homePage> {
                       )
                     ],
                   ),
-                );
-              },
-            ),
+                ),
+              );
+            },
+          ),
         )
       ],
     );
@@ -353,15 +416,12 @@ class _homePageState extends State<homePage> {
   Container searchField() {
     return Container(
       margin: const EdgeInsets.only(top: 40, left: 20, right: 20),
-      decoration: BoxDecoration(
-          boxShadow: [
-            BoxShadow(
-                color: const Color(0xff1D1617).withOpacity(0.11),
-                blurRadius: 40,
-                spreadRadius: 0.0
-            )
-          ]
-      ),
+      decoration: BoxDecoration(boxShadow: [
+        BoxShadow(
+            color: const Color(0xff1D1617).withOpacity(0.11),
+            blurRadius: 40,
+            spreadRadius: 0.0)
+      ]),
       child: TextField(
         decoration: InputDecoration(
             filled: true,
@@ -398,9 +458,7 @@ class _homePageState extends State<homePage> {
             ),
             border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(15),
-                borderSide: BorderSide.none
-            )
-        ),
+                borderSide: BorderSide.none)),
       ),
     );
   }
@@ -409,35 +467,15 @@ class _homePageState extends State<homePage> {
     return AppBar(
       title: const Text('Breakfast',
           style: TextStyle(
-              color: Colors.black,
-              fontSize: 18,
-              fontWeight: FontWeight.bold)),
+              color: Colors.black, fontSize: 18, fontWeight: FontWeight.bold)),
       elevation: 0.0,
       backgroundColor: Colors.white,
       centerTitle: true,
-      leading: GestureDetector(
-          onTap: () {
-            setState(() {
-              _selectedIndex = 0;
-            });
-          },
-          child: Container(
-            margin: const EdgeInsets.all(10),
-            alignment: Alignment.center,
-            decoration: BoxDecoration(
-                color: const Color(0xffF7F8F8),
-                borderRadius: BorderRadius.circular(10)),
-            child: SvgPicture.asset(
-              'assets/icons/Arrow - Left 2.svg',
-              height: 20,
-              width: 20,
-            ),
-          )),
       actions: [
         GestureDetector(
             onTap: () {
               setState(() {
-                _selectedIndex = 4;
+                _selectedIndex = 3;
               });
             },
             child: Container(
@@ -452,6 +490,7 @@ class _homePageState extends State<homePage> {
                 color: Colors.black,
               ),
             ))
+
       ],
     );
   }

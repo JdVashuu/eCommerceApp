@@ -48,8 +48,8 @@ class categoryModel {
         boxColor: Color(0xff92A3FD)));
 
     categories.add(categoryModel(
-        name: 'Cargos',
-        iconPath: 'assets/icons/pancakes.svg',
+        name: 'Nigiri',
+        iconPath: 'assets/icons/salmon-nigiri.svg',
         boxColor: Color(0xffC58BF2)));
 
     categories.add(categoryModel(

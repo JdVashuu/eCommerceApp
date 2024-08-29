@@ -46,10 +46,7 @@ class CategoryPage extends StatelessWidget {
                 return InkWell(
                   onTap: (){
                     if (categories[displayIndex].name == 'Salads') {
-                      categories[displayIndex].navigateToPage(context, SaladsOptions());
-                    }
-                    else if (categories[displayIndex].name == 'Pancakes') {
-                      categories[displayIndex].navigateToPage(context, PancakeOptions());
+                      categories[displayIndex].navigateToPage(context, SaladOptions());
                     }
                     else{
                       categories[displayIndex].navigateToPage(context, PancakeOptions());
